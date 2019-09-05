@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{B1CB8DBE-A580-4835-81D4-6323C50551A3}</ProjectGuid>
+    <ProjectTypeGuids>{06FA79CB-D6CD-4721-BB4B-1BD202089C55};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <TemplateGuid>{a52b8a63-bc84-4b47-910d-692533484892}</TemplateGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>BTProgressHUD</RootNamespace>
+    <IPhoneResourcePrefix>Resources</IPhoneResourcePrefix>
+    <AssemblyName>BTProgressHUD</AssemblyName>
+    <ReleaseVersion>1.7</ReleaseVersion>
+    <SynchReleaseVersion>false</SynchReleaseVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>True</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>False</Optimize>
+    <OutputPath>bin\unified\Debug</OutputPath>
+    <DefineConstants>DEBUG;__UNIFIED__</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>False</ConsolePause>
+    <IntermediateOutputPath>obj\unified\$(Configuration)\</IntermediateOutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>none</DebugType>
+    <Optimize>True</Optimize>
+    <OutputPath>bin\unified\Release</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>False</ConsolePause>
+    <IntermediateOutputPath>obj\unified\$(Configuration)\</IntermediateOutputPath>
+    <DefineConstants>__UNIFIED__</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Core" />
+    <Reference Include="Xamarin.TVOS" />
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath)\Xamarin\TVOS\Xamarin.TVOS.CSharp.targets" />
+  <ItemGroup>
+    <Folder Include="Resources\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="BTProgressHUD.cs" />
+    <Compile Include="NSObjectExtensions.cs" />
+    <Compile Include="ProgressHUD.cs" />
+    <Compile Include="Ring.cs" />
+    <Compile Include="XHUD.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <BundleResource Include="success%402x.png">
+      <DependentUpon>BTProgressHUD.cs</DependentUpon>
+    </BundleResource>
+    <BundleResource Include="error.png" />
+    <BundleResource Include="error%402x.png" />
+    <BundleResource Include="success.png" />
+    <BundleResource Include="error_7.png" />
+    <BundleResource Include="error_7%402x.png" />
+    <BundleResource Include="success_7.png" />
+    <BundleResource Include="success_7%402x.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <BundleResource Include="xamarin%402x.png" />
+    <BundleResource Include="xamarin.png" />
+  </ItemGroup>
+</Project>

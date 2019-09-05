@@ -22,12 +22,6 @@ using Foundation;
 using CoreAnimation;
 using CoreGraphics;
 using ObjCRuntime;
-
-
-
-
-
-
 #else
 using MonoTouch.UIKit;
 using MonoTouch.Foundation;
@@ -44,6 +38,16 @@ using CGSize = global::System.Drawing.SizeF;
 
 namespace BigTed
 {
+#if __TVOS__
+	public enum UIInterfaceOrientation
+	{
+		Portrait,
+		PortraitUpsideDown,
+		LandscapeLeft,
+		LandscapeRight
+	}
+#endif
+
 	public class ProgressHUD : UIView
 	{
 		static Class clsUIPeripheralHostView = null;
@@ -403,11 +407,11 @@ namespace BigTed
 
 		void StartDismissTimer (TimeSpan duration)
 		{
-			#if __UNIFIED__
+#if __UNIFIED__
 			_fadeoutTimer = NSTimer.CreateTimer (duration, timer => DismissWorker ());
-			#else
+#else
 			_fadeoutTimer = NSTimer.CreateTimer(duration, DismissWorker);
-			#endif
+#endif
 			NSRunLoop.Main.AddTimer (_fadeoutTimer, NSRunLoopMode.Common);
 		}
 
@@ -415,11 +419,11 @@ namespace BigTed
 		{
 
 			if (_progressTimer == null) {
-				#if __UNIFIED__
+#if __UNIFIED__
 				_progressTimer = NSTimer.CreateRepeatingTimer (duration, timer => UpdateProgress ());
-				#else
+#else
 				_progressTimer = NSTimer.CreateRepeatingTimer(duration, UpdateProgress);
-				#endif
+#endif
 				NSRunLoop.Current.AddTimer (_progressTimer, NSRunLoopMode.Common);
 			}
 		}
@@ -559,6 +563,7 @@ namespace BigTed
 		UIView HudView {
 			get {
 				if (_hudView == null) {
+#if __IOS__
 					if (IsiOS7ForLookAndFeel) {
 						_hudView = new UIToolbar ();
 						(_hudView as UIToolbar).Translucent = true;
@@ -566,6 +571,9 @@ namespace BigTed
 					} else {
 						_hudView = new UIView ();
 					}
+#elif __TVOS__
+					_hudView = new UIView();
+#endif
 					_hudView.Layer.CornerRadius = 10;
 					_hudView.Layer.MasksToBounds = true;
 					_hudView.BackgroundColor = HudBackgroundColour;
@@ -574,8 +582,10 @@ namespace BigTed
 
 					AddSubview (_hudView);
 
+#if __IOS__
 					if (_hudView is UIToolbar)
 						_hudView.LayoutIfNeeded();
+#endif
 				}
 				return _hudView;
 			}
@@ -614,7 +624,11 @@ namespace BigTed
 					_cancelHud.BackgroundColor = UIColor.Clear;
 					_cancelHud.SetTitleColor (HudForegroundColor, UIControlState.Normal);
 					_cancelHud.UserInteractionEnabled = true;
+
+#if __IOS__
 					_cancelHud.Font = HudFont;
+#endif
+
 					this.UserInteractionEnabled = true; 
 				}
 				if (_cancelHud.Superview == null) {
@@ -735,12 +749,13 @@ namespace BigTed
 						OverlayView.RemoveFromSuperview ();
 						OverlayView = null;
 						this.RemoveFromSuperview ();
-
+#if __IOS__
 						if (IsiOS7ForLookAndFeel) {
 							var rootController = UIApplication.SharedApplication.KeyWindow.RootViewController;
 							if (rootController != null)
 								rootController.SetNeedsStatusBarAppearanceUpdate ();
 						}
+#endif
 					});
 				}
 			});
@@ -758,6 +773,7 @@ namespace BigTed
 			if (_eventListeners == null) {
 				_eventListeners = new List<NSObject> ();
 			}
+#if __IOS__
 			_eventListeners.Add (NSNotificationCenter.DefaultCenter.AddObserver (UIApplication.DidChangeStatusBarOrientationNotification,
 				PositionHUD));
 			_eventListeners.Add (NSNotificationCenter.DefaultCenter.AddObserver (UIKeyboard.WillHideNotification,
@@ -768,6 +784,7 @@ namespace BigTed
 				PositionHUD));
 			_eventListeners.Add (NSNotificationCenter.DefaultCenter.AddObserver (UIKeyboard.DidShowNotification,
 				PositionHUD));
+#endif
 		}
 
 		void UnRegisterNotifications ()
@@ -795,13 +812,20 @@ namespace BigTed
 
 			Frame = UIScreen.MainScreen.Bounds;
 
+#if __IOS__
 			UIInterfaceOrientation orientation = UIApplication.SharedApplication.StatusBarOrientation;
+#elif __TVOS__
+			UIInterfaceOrientation orientation = UIInterfaceOrientation.LandscapeLeft;
+#endif
+
 			bool ignoreOrientation = UIDevice.CurrentDevice.CheckSystemVersion (8, 0);
 
-			if (notification != null) {
+			if (notification != null)
+			{
+#if __IOS__
 				var keyboardFrame = UIKeyboard.FrameEndFromNotification (notification);
 				animationDuration = UIKeyboard.AnimationDurationFromNotification (notification);
-				
+
 				if (notification.Name == UIKeyboard.WillShowNotification || notification.Name == UIKeyboard.DidShowNotification) {
 					if (ignoreOrientation || IsPortrait (orientation))
 						keyboardHeight = keyboardFrame.Size.Height;
@@ -809,6 +833,7 @@ namespace BigTed
 						keyboardHeight = keyboardFrame.Size.Width;
 				} else
 					keyboardHeight = 0;
+#endif
 
 			} else {
 				keyboardHeight = VisibleKeyboardHeight;
@@ -816,8 +841,12 @@ namespace BigTed
 
 			CGRect orientationFrame = UIApplication.SharedApplication.KeyWindow.Bounds;
 
+#if __IOS__
 			CGRect statusBarFrame = UIApplication.SharedApplication.StatusBarFrame;
-			
+#elif __TVOS__
+			CGRect statusBarFrame = CGRect.Empty;
+#endif
+
 			if (!ignoreOrientation && IsLandscape (orientation)) {
 				orientationFrame.Size = new CGSize (orientationFrame.Size.Height, orientationFrame.Size.Width);
 				statusBarFrame.Size = new CGSize (statusBarFrame.Size.Height, statusBarFrame.Size.Width);
@@ -941,15 +970,14 @@ namespace BigTed
 										 null);
 					stringWidth = stringSize.Width;
 					stringHeight = stringSize.Height;
-				} else {
+				}
+#if __IOS__
+				else {
 					var stringSize = new NSString (@string).StringSize (StringLabel.Font, new CGSize (200, 30 * lineCount));
 					stringWidth = stringSize.Width;
 					stringHeight = stringSize.Height;
 				}
-
-
-				
-
+#endif
 				hudHeight += stringHeight;
 
 				if (stringWidth > hudWidth)
@@ -978,11 +1006,14 @@ namespace BigTed
 										 null);
 					stringWidth = stringSize.Width;
 					stringHeight = stringSize.Height;
-				} else {
+				}
+#if __IOS__
+				else {
 					var stringSize = new NSString (@cancelCaption).StringSize (StringLabel.Font, new CGSize (200, 300));
 					stringWidth = stringSize.Width;
 					stringHeight = stringSize.Height;
 				}
+#endif
 
 				if (stringWidth > hudWidth)
 					hudWidth = (float)Math.Ceiling (stringWidth / 2) * 2;
@@ -1040,12 +1071,20 @@ namespace BigTed
 
 		public bool IsLandscape (UIInterfaceOrientation orientation)
 		{
+#if __IOS__
 			return (orientation == UIInterfaceOrientation.LandscapeLeft || orientation == UIInterfaceOrientation.LandscapeRight);
+#elif __TVOS__
+			return true;
+#endif
 		}
 
 		public bool IsPortrait (UIInterfaceOrientation orientation)
 		{
+#if __IOS__
 			return (orientation == UIInterfaceOrientation.Portrait || orientation == UIInterfaceOrientation.PortraitUpsideDown);
+#elif __TVOS__
+			return false;
+#endif
 		}
 
 		public bool IsiOS7ForLookAndFeel {
